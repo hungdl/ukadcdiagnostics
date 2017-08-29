@@ -1,0 +1,48 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DataTemplate x:Key="listTemplate">
+        <StackPanel Orientation="Horizontal">
+            <Border CornerRadius="3" Width="20" Height="20" Margin="10" ToolTip="{Binding EventType}">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Background" Value="Gray" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding EventType}" Value="Critical">
+                                <Setter Property="Background" Value="Crimson" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding EventType}" Value="Error">
+                                <Setter Property="Background" Value="Orange" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding EventType}" Value="Warning">
+                                <Setter Property="Background" Value="Yellow" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding EventType}" Value="Information">
+                                <Setter Property="Background" Value="Blue" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding EventType}" Value="Verbose">
+                                <Setter Property="Background" Value="Azure" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding EventType}" Value="Start">
+                                <Setter Property="Background" Value="Green" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding EventType}" Value="Stop">
+                                <Setter Property="Background" Value="Red" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+            </Border>
+            
+            <StackPanel>
+                <TextBlock Text="{Binding Source}" />
+                <TextBlock Text="{Binding DateTime}" />
+            </StackPanel>
+            
+        </StackPanel>
+    </DataTemplate>
+    <DataTemplate x:Key="viewTemplate">
+        <TextBox Text="{Binding Message, Mode=OneWay}" IsReadOnly="True" Margin="5" />
+    </DataTemplate>
+    
+    
+ </ResourceDictionary>

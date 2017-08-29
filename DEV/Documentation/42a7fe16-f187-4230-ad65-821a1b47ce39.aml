@@ -1,0 +1,835 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<topic id="42a7fe16-f187-4230-ad65-821a1b47ce39" revisionNumber="1">
+  <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!--
+    <summary>
+      <para>Optional summary abstract</para>
+    </summary>
+    -->
+    <introduction>
+      <!-- Uncomment this to generate an outline of the section and sub-section
+           titles.  Specify a numeric value as the inner text to limit it to
+           a specific number of sub-topics when creating the outline.  Specify
+           zero (0) to limit it to top-level sections only.  -->
+      <!-- <autoOutline /> -->
+		<para>
+			When an application is running it is often necessary to record the path taken through the code by a user request. It may be the 
+			case that the user has found a fault in the application and wants to send detailed data to the development team in order to debug 
+			the issue, or it may be that the development team wants to understand more about the performance profile of some part of their 
+			application – generally to see where the application spends most of its time.
+		</para>
+		<para>
+			These and other scenarios can be addressed by using the tracing facilities in .NET. Prior to .NET version 2.0 there were 
+			limited trace facilities in the framework – you were limited to one trace source and multiple trace listeners. This meant in 
+			effect that you couldn’t trace just the code in one assembly – it would be polluted with data from all other running code, 
+			making it hard to see where a given issue arose.
+		</para>
+		<para>
+			In addition the amount of trace data available was also limited – for example you couldn’t obtain details such as a stack 
+			trace or the thread ID without significant extra code. These and other issues have now been addressed in .NET 2.0 and the 
+			tracing facilities have been expanded to cope with other scenarios too.
+		</para>
+		<para>
+			In the following sections we'll describe in general terms the pieces that make up the tracing framework within .NET. 
+			These are just overviews – we’ll go into further detail later in this topic.
+		</para>
+    </introduction>
+    <!-- Add one or more top-level section elements.  These are collapsible.
+         If using <autoOutline />, add an address attribute to identify it
+         and specify a title so that it can be jumped to with a hyperlink. -->
+         
+	<section address="ClassOverview">
+		<title>Main Classes</title>
+		<content>
+			<para>The main classes in the System.Diagnostics namespace are as follows</para>
+		</content>
+		<sections>
+			<section address="ClassOverview.TraceSource">
+				<title>TraceSource</title>
+				<content>
+					<para>
+						The System.Diagnostics.TraceSource class supersedes the System.Diagnostics.Trace class and should be used in 
+						place of this class wherever tracing is needed. It is designed to be used as a shared object, available to code 
+						within a namespace or assembly. There could be multiple trace sources active at any time within an application – 
+						they are designed this way so that you can enable or disable sources as appropriate without recompiling the code.
+					</para>
+					<para>
+						As an example, consider an application that uses Windows Communication Foundation to communicate to a server. 
+						You may want to enable tracing for just the application itself, the application and WCF, the application, 
+						WCF and the server services, or any other combination of these. In addition there may be other trace sources 
+						on one of these tiers – for example WPF has its own sources, as does System.Transactions and several other parts 
+						of .NET.
+					</para>
+					<para>
+						There are two typical scopes where it makes sense to define a trace source – either on an assembly by assembly 
+						basis or on a namespace by namespace basis. As the TraceSource object is just a class you could construct a 
+						source for a particular class, or indeed for a particular method, however we would recommend a less fine grained 
+						setting such as per assembly or namespace.
+					</para>
+				</content>
+			</section>
+			<section address="ClassOverview.TraceListener">
+				<title>TraceListener</title>
+				<content>
+					<para>
+						When a trace source has been defined it is also necessary to add one or more TraceListener instances to that 
+						source. A listener is simply a sink where messages from a trace source are written. There are a number of 
+						listeners built into .NET, however if these do not satisfy your requirements then you can always construct 
+						your own.
+					</para>
+				</content>
+			</section>
+			<section address="ClassOverview.TraceFilter">
+				<title>TraceFilter</title>
+				<content>
+					<para>
+						When messages are raised by a TraceSource it may be necessary to filter these so that only certain messages 
+						are actually logged. The TraceSource already defines a ‘level’ that is used to determine whether a particular 
+						category of message is actually written to the listener(s), however you may also want to have more fine grained 
+						filtering on messages which is where the TraceFilter class comes in.
+					</para>
+					<para>
+						Each listener can have at most one filter defined, and each filter is derived from the abstract TraceFilter class.
+						There is one method defined on this class which is called when a message is about to be traced – that being the 
+						abstract ShouldTrace() method.
+					</para>
+					<para>
+						A listener can have at most one filter defined, so for example you could have one trace source with two 
+						listeners, and one listener could record just critical events whilst the other could record all events. 
+						A good example would be when using the EventLog to log messages – this should typically only be used for 
+						critical events as it’s not really designed to include lots of debug messages.
+					</para>
+				</content>
+			</section>			
+		</sections>
+    </section>
+         
+	<section address="InDepth">
+		<title>Tracing in depth</title>
+		<content>
+			<para>
+				In this section we’ve taken the concepts presented in the overview above and present a full breakdown of how to add 
+				tracing to an application, and also how to view the logs that are generated.
+			</para>
+		</content>
+		<sections>
+			<section address="ConstructingATraceSource">
+				<title>Constructing a TraceSource</title>
+				<content>
+					<para>
+						You can construct as many TraceSource instances as you wish – however in practice it makes sense to limit 
+						the number of sources to either one per assembly or one per namespace. In this example I’ll use one 
+						TraceSource for the client application, one for the processing assembly, and one within the WCF service.
+					</para>
+					<para>
+						The code below constructs a TraceSource instance and stores it as a static property so that it can be 
+						accessed within the client application.
+					</para>
+		            <code language="C#">
+					/// &lt;summary&gt;
+					/// This class exposes a trace source for the assembly 'MyAssembly'
+					/// &lt;/summary&gt;
+					internal class MyAssemblySource
+					{
+					    /// &lt;summary&gt;
+					    /// Construct the trace source
+					    /// &lt;/summary&gt;
+					    static MyAssemblySource()
+					    {
+					        // Set the default level of this trace source to Critical.
+					        // In the absense of any other configuration this will ensure that
+					        // only critical messages are output
+					        _myAssemblySource = new TraceSource("MyAssembly", SourceLevels.Critical);
+					    }
+					
+					    /// &lt;summary&gt;
+					    /// Get the trace source for the client app
+					    /// &lt;/summary&gt;
+					    internal static TraceSource TraceSource
+					    {
+					        get { return _myAssemblySource; }
+					    }
+					
+					    /// &lt;summary&gt;
+					    /// Store the single trace source instance
+					    /// &lt;/summary&gt;
+					    private static TraceSource _myAssemblySource;
+					}
+		            </code>
+            
+            		<para>
+            			Within the static constructor we create the TraceSource instance. There are two constructors on TraceSource – 
+            			each has a name parameter (the first) and the one shown above provides a default for the level of output 
+            			expected from this source. Here we’ve defined SourceLevels.Critical, which in the absence of any other 
+            			configuration information will ensure that only trace events with their level set to Critical will be output.
+            		</para>
+            		
+				</content>
+			</section>
+			<section address="TracingEvents">
+				<title>Tracing Events</title>
+				<content>
+					<para>
+						Once a TraceSource has been constructed you then need to add code within your application to raise trace 
+						events. The TraceSource class contains a number of members that allow you to raise events – these are 
+						shown in the table below with some explanation as to what they do.
+					</para>
+					<table>
+						<title></title>
+						<tableHeader>
+							<row>
+								<entry>Method</entry>
+								<entry>Description</entry>
+							</row>
+						</tableHeader>
+						<row>
+							<entry>TraceData (TraceEventType, Int32, Object)</entry>
+							<entry>Writes the integer and the object to the trace listener(s), typically by using the ToString() method of 
+							the object passed to this call. You don't have to use ToString in your listener - indeed if you pass an object 
+							that is derived from XPathNavigator and you have the XmlWriterTraceListener defined then this will write out 
+							the full XML of the object passed to it.</entry>
+						</row>
+						<row>
+							<entry>TraceData (TraceEventType, Int32, params Object[])</entry>
+							<entry>Writes the integer and the collection of objects to the trace listener(s).</entry>
+						</row>
+						<row>
+							<entry>TraceEvent (TraceEventType, Int32)</entry>
+							<entry>Writes the integer to the trace listener(s).</entry>
+						</row>
+						<row>
+							<entry>TraceEvent (TraceEventType, Int32, String)</entry>
+							<entry>Writes the integer and the string to the trace listener(s).</entry>
+						</row>
+						<row>
+							<entry>TraceEvent (TraceEventType, Int32, String, params Object[])</entry>
+							<entry>This uses the passed string as the format specification in a call to string.Format(). The object array 
+							is used as the argument array to this function. The integer and formatted string are written to the trace 
+							listener(s).</entry>
+						</row>
+						<row>
+							<entry>TraceInformation (String)</entry>
+							<entry>Trace an informational message – this will only be displayed in the trace output if the source level 
+							is set to Information or Verbose.</entry>
+						</row>
+						<row>
+							<entry>TraceInformation (String, params Object[])</entry>
+							<entry>Uses the passed string and object array in a call to string.Format(), and outputs this if the source 
+							level is set to Information or Verbose.</entry>
+						</row>
+					</table>
+					<para>
+					The TraceEventType argument is an enumerated constant defined as one of the following options.
+					</para>
+					
+					<table>
+						<title></title>
+						<tableHeader>
+							<row>
+								<entry>TraceEventType</entry>
+								<entry>Value</entry>
+							</row>
+						</tableHeader>
+						<row>
+							<entry>Critical</entry>
+							<entry>0x0001</entry>
+						</row>
+						<row>
+							<entry>Error</entry>
+							<entry>0x0002</entry>
+						</row>
+						<row>
+							<entry>Warning</entry>
+							<entry>0x0004</entry>
+						</row>
+						<row>
+							<entry>Information</entry>
+							<entry>0x0008</entry>
+						</row>
+						<row>
+							<entry>Start</entry>
+							<entry>0x0100</entry>
+						</row>
+						<row>
+							<entry>Stop</entry>
+							<entry>0x0200</entry>
+						</row>
+						<row>
+							<entry>Suspend</entry>
+							<entry>0x0400</entry>
+						</row>
+						<row>
+							<entry>Resume</entry>
+							<entry>0x0800</entry>
+						</row>
+						<row>
+							<entry>Transfer</entry>
+							<entry>0x1000</entry>
+						</row>
+					</table>
+					<para>
+						When a call is made to any of the Trace methods shown in the table above, the TraceEventType is logically 
+						ANDed with the SourceLevels value used in the TraceSource constructor, and if the levels match (i.e. 
+						the result of the logical-AND is non zero) then the trace data is written to each listener. We’ll describe 
+						the Start/Stop/Suspend/Resume and Transfer types later in the document.
+					</para>
+					<para>
+						The SourceLevels enumerated values are defined as follows.
+					</para>
+					
+					
+					<table>
+						<title></title>
+						<tableHeader>
+							<row>
+								<entry>SourceLevels</entry>
+								<entry>Value</entry>
+							</row>
+						</tableHeader>
+						<row>
+							<entry>All</entry>
+							<entry>0xFFFF</entry>
+						</row>
+						<row>
+							<entry>Off</entry>
+							<entry>0x0000</entry>
+						</row>
+						<row>
+							<entry>Critical</entry>
+							<entry>0x0001</entry>
+						</row>
+						<row>
+							<entry>Error</entry>
+							<entry>0x0003</entry>
+						</row>
+						<row>
+							<entry>Warning</entry>
+							<entry>0x0007</entry>
+						</row>
+						<row>
+							<entry>Information</entry>
+							<entry>0x000F</entry>
+						</row>
+						<row>
+							<entry>Verbose</entry>
+							<entry>0x001F</entry>
+						</row>
+						<row>
+							<entry>ActivityTracing</entry>
+							<entry>0xFF00</entry>
+						</row>
+					</table>
+					
+					<para>
+						So, if you were to specify SourceLevels.Error when defining the TraceSource, then only events marked as Warning, 
+						Error or Critical would be logged.
+					</para>
+					
+				</content>
+			</section>
+			<section address="ConfiguringATraceSource">
+				<title>Configuring a TraceSource</title>
+				<content>
+					<para>
+						The TraceSource can be configured within code, but this is more typically going to be done by defining trace 
+						options within the application configuration file. The simplest thing you can do within the configuration 
+						file is to define a value from the SourceLevels enumeration, so despite defining in the code that the default
+						is to output only Critical events, you can change this by adding the following to the configuration file.
+					</para>
+					<code language="xml">
+						&lt;?xml version="1.0" encoding="utf-8" ?&gt;
+						&lt;configuration&gt;
+						  &lt;system.diagnostics&gt;
+						    &lt;switches&gt;
+						      &lt;add name="ClientApp" value="All"/&gt;
+						    &lt;/switches&gt;
+						  &lt;/system.diagnostics&gt;
+						&lt;/configuration&gt;					
+					</code>
+					<para>
+						Here we have defined a switch with the name ‘ClientApp’ and the value set to ‘All’. Within the TraceSource class the Initialize() 
+						method checks if there is a trace switch defined in the config file with the same name as the TraceSource. If so, the value is 
+						parsed and converted to a value from the SourceLevels enum. With the above in place, all events raised from the code will be 
+						written to the trace listeners.
+					</para>
+					<para>
+						There are however a couple of other ways to define the level for a TraceSource. 
+					</para>
+					
+					<section address="">
+						<title>Switch Configuration</title>
+						<sections>
+							<section>
+								<title>Configuring using a shared switch</title>
+								<content>
+									<para>
+										There may be times when you need to enable tracing at a certain level for multiple trace sources. Rather than adding in multiple 
+										switches and changing each of these, you can share a switch value across multiple trace sources by defining the switchName 
+										attribute on each source, and adding in a switch into the &lt;switches&gt; section of the configuration file.
+									</para>
+									<code language="xml">
+										&lt;?xml version="1.0" encoding="utf-8" ?&gt;
+										&lt;configuration&gt;
+										  &lt;system.diagnostics&gt;
+										    &lt;sources&gt;
+										      &lt;source name="ClientApp" switchName="SharedSwitch"/&gt;
+										      &lt;source name="ProcessingCode" switchName="SharedSwitch"/&gt;
+										    &lt;/sources&gt;
+										    &lt;switches&gt;
+										      &lt;add name="SharedSwitch" value="All"/&gt;
+										    &lt;/switches&gt;
+										  &lt;/system.diagnostics&gt;
+										&lt;/configuration&gt;
+									</code>
+									<para>
+										In the configuration file above we have defined two trace sources (given the same name as that used in code when constructing the 
+										TraceSource instance), and have set the switchName attribute to SharedSwitch. Thus both the ClientApp and ProcessingCode trace 
+										sources use the same switch value. If the switchName attribute is defined then this takes precedence over a switch with the 
+										same name as the TraceSource.
+									</para>
+								</content>
+							</section>
+							<section>
+								<title>Configuring the switch value inline</title>
+								<content>
+									<para>
+										In addition to the two methods above there is a third way to define the level that the trace source will use – you can specify 
+										the switchValue attribute of the source to one of the values from the SourceLevels enumeration.
+									</para>
+									<code language="xml">
+										&lt;?xml version="1.0" encoding="utf-8" ?&gt;
+										&lt;configuration&gt;
+										  &lt;system.diagnostics&gt;
+										    &lt;sources&gt;
+										      &lt;source name="ClientApp" switchValue="Verbose" /&gt;
+										    &lt;/sources&gt;
+										  &lt;/system.diagnostics&gt;
+										&lt;/configuration&gt;
+									</code>
+									<para>
+										This doesn’t require the use of a separate &lt;switch&gt; element in the configuration file, but is functionally equivalent to defining 
+										a switch with the name set to ClientApp and value set to Verbose.
+									</para>
+									<para>
+										As in the shared switch example, the use of the switchValue attribute takes precedence over a named switch. Note that defining 
+										both the switchName and switchValue attributes will result in an exception – these are mutually exclusive.
+									</para>
+								</content>
+							</section>
+							<section>
+								<title>Other TraceSource attributes</title>
+								<content>
+									<para>
+										The TraceSource class also supports a couple of other attributes. If you define the switchType attribute this is used when 
+										constructing the Switch property of the TraceSource class. Your class must derive from the SourceSwitch class, and typically 
+										will have a constructor that has one string parameter. When the TraceSource is constructed it will also construct an instance 
+										of this switch class, and pass the value from switchValue to it. Thus you can have your own switch type such as 'DaysOfTheWeek', 
+										and set the value to 'Saturday, Sunday' to only log events on these days if appropriate.
+									</para>
+									<para>
+										If you derive a class from TraceSource, you can optionally permit custom attributes to be defined and parsed from the configuration 
+										file. In order to do this it is necessary to override the GetSupportedAttributes method of TraceSource to return a collection of 
+										permitted attributes. These will be read into a StringDictionary and set as the Attributes property of your class. It’s 
+										then up to you what you want to use these attributes for. As both of the above items are used in custom solutions we won’t 
+										discuss these further on this site.
+									</para>
+								</content>
+							</section>
+						</sections>
+					</section>
+					
+				</content>
+			</section>
+			<section address="TraceListeners">
+				<title>Trace Listeners</title>
+				<content>
+          <para>
+            Up to this point in the document we’ve not described how or where trace output is written. If you have typed in any of the
+            code and output some trace data you may have noticed that this output has been directed to the Output window in Visual
+            Studio.
+          </para>
+          <para>
+            The tracing subsystem in .NET uses classes derived from TraceListener to provide output – and by default a single
+            listener is defined which outputs trace data to the Debug stream (using the OutputDebugString API function under
+            the covers). There are two main ways to view this data – either by running your application within Visual Studio,
+            or by using the 
+
+            <externalLink>
+              <linkText>DebugView</linkText>
+              <linkUri>http://www.microsoft.com/technet/sysinternals/utilities/debugview.mspx</linkUri>
+              <linkTarget>_self</linkTarget>
+            </externalLink>
+            
+            tool available for download from Microsoft.
+          </para>
+          <alert class="caution">
+            If you are using DebugView in a server application it will serialize calls when writing debug information, and therefore 
+            should be used with caution in server scenarios. We would recommend clearing the trace listeners collection within the 
+            configuration file and then adding in just the listeners you require. An example is shown in the following section.
+          </alert>
+          <para>
+            You will most probably want to output trace information to somewhere other than the debug stream, and this is where 
+            trace listeners come in.
+          </para>
+          <sections>
+            <section>
+              <title>Defining Trace Listeners</title>
+              <content>
+                <para>
+                  You can define trace listeners in code, however once again we would recommend using the configuration file approach 
+                  which is what we will discuss here. There are two places within the configuration file that you can define listeners 
+                  – you can define a set of shared listeners that can be used by all TraceSource instances by specifying these listeners 
+                  in the <codeInline>&lt;sharedListeners&gt;</codeInline> section, and you can also define listeners that apply to a
+                  specific trace source by including the details of the listener within the traceSource element.
+                </para>
+                <para>
+                  The configuration file below shows an example of defining a shared listener and also a listener that is only used 
+                  for a single trace source.
+                </para>
+                <code language="xml">
+                &lt;?xml version="1.0" encoding="utf-8" ?&gt;
+                &lt;configuration&gt;
+                  &lt;system.diagnostics&gt;
+                    &lt;sources&gt;
+                      &lt;source name="ClientApp" switchValue="All"&gt;
+                        &lt;listeners&gt;
+                          &lt;clear/&gt;
+                          &lt;add name="EventLog" 
+                               type="System.Diagnostics.EventLogTraceListener" 
+                               traceOutputOptions="DateTime,ThreadId,Timestamp"
+                               initializeData="ClientAppEventLog"/&gt;
+                          &lt;add name="xml"/&gt;
+                        &lt;/listeners&gt;
+                      &lt;/source&gt;
+                    &lt;/sources&gt;
+                    &lt;sharedListeners&gt;
+                      &lt;add name="xml" 
+                           type="System.Diagnostics.XmlWriterTraceListener" 
+                           traceOutputOptions="Callstack,LogicalOperationStack,ProcessId "
+                           initializeData="C:\logs\Test.svclog"/&gt;
+                    &lt;/sharedListeners&gt;
+                  &lt;/system.diagnostics&gt;
+                &lt;/configuration&gt;
+                </code>
+                <para>
+                  Here we have defined a single trace source, and it has two trace listeners defined. The first, the 
+                  EventLogTraceListener logs entries into the Windows event log. The second writes data to an XML file on disk.
+                  There are a number of event listeners available with the .NET framework, and if these do not suffice for 
+                  your needs you can always write your own. The inbuilt listeners are listed in the table below.
+                </para>
+
+                <table>
+                  <title></title>
+                  <tableHeader>
+                    <row>
+                      <entry>Name</entry>
+                      <entry>Description</entry>
+                    </row>
+                  </tableHeader>
+                  <row>
+                    <entry>DefaultTraceListener</entry>
+                    <entry>Logs all events to the Debug stream.</entry>
+                  </row>
+                  <row>
+                    <entry>EventProviderTraceListener</entry>
+                    <entry>Writes events to Vista’s ETW infrastructure. Highly performant.</entry>
+                  </row>
+                  <row>
+                    <entry>EventLogTraceListener</entry>
+                    <entry>Logs events to the system wide event log.</entry>
+                  </row>
+                  <row>
+                    <entry>TextWriterTraceListener</entry>
+                    <entry>Sends output to a TextWriter or Stream.</entry>
+                  </row>
+                  <row>
+                    <entry>ConsoleTraceListener </entry>
+                    <entry>Writes events to the Console stream.</entry>
+                  </row>
+                  <row>
+                    <entry>DelimitedListTraceListener</entry>
+                    <entry>Writes output in a delimited format (by default a semicolon). Useful for importing logs into Excel.</entry>
+                  </row>
+                  <row>
+                    <entry>EventSchemaTraceListener</entry>
+                    <entry>Logs events in a standardised manner so that tools can read these events. The logs created are in an XML format. Highly performant.</entry>
+                  </row>
+                  <row>
+                    <entry>XmlWriterTraceListener</entry>
+                    <entry>Writes the output data to an XML file.</entry>
+                  </row>
+                </table>
+                <para>
+                  You can add as many or as few listeners to the configuration file. Each listener can be further configured using
+                  attributes within the config file. In the example above we have specified a set of TraceOutputOptions for each
+                  listener – these define what is written by the listener. These options are defined within the config file
+                  as a comma-delimited list, and the options are Callstack, DateTime, LogicalOperationStack, None (the default),
+                  ProcessId, ThreadId and Timestamp.
+                </para>
+                <para>
+                  These values give you a lot more information that was available with the 1.x versions of the framework. More
+                  information on writing events in Windows Vista (and also Windows Server 2008) can be found
+                  <externalLink>
+                    <linkText>here</linkText>
+                    <linkUri>http://msdn.microsoft.com/msdnmag/issues/07/04/ETW/default.aspx</linkUri>
+                    <linkTarget>_self</linkTarget>
+                  </externalLink>
+                  .
+                </para>
+              </content>
+            </section>
+
+            <section>
+              <title></title>
+              <content>
+
+              </content>
+            </section>
+
+          </sections>
+
+        </content>
+			</section>
+			<section address="TraceFilters">
+				<title>Trace Filters</title>
+				<content>
+          <para>
+            The last main area of extension for tracing is the use of the TraceFilter class. A filter is used to determine whether a
+            given event should be traced, and derives from the abstract TraceFilter class.
+          </para>
+          <para>
+            There are two built-in trace filters – the
+
+            <externalLink>
+              <linkText>SourceFilter</linkText>
+              <linkUri>http://msdn2.microsoft.com/system.diagnostics.tracefilter</linkUri>
+              <linkTarget>_self</linkTarget>
+            </externalLink>
+
+            which determines if an event should be traced by testing the name of the source that raised the event, and the
+
+            <externalLink>
+              <linkText>EventTypeFilter</linkText>
+              <linkUri>http://msdn2.microsoft.com/system.diagnostics.eventtypefilter</linkUri>
+              <linkTarget>_self</linkTarget>
+            </externalLink>
+
+            which determines whether to log the event based on a value from the SourceLevels enum.
+          </para>
+          <para>
+            In this section we’ll describe a custom filter that only records events from a set of pre-defined methods. This might 
+            be useful when tracking down a problem as it allows you to have fine-grained control over which methods are traced and 
+            which are omitted. This is an over-simplified example of what's available within the logging framework presented 
+            on this site. The code below shows a simple implementation of this custom trace filter.
+          </para>
+          <code language="c#">
+            public class MethodFilter : TraceFilter
+            {
+                public MethodFilter(string options)
+                {
+                    _options = options;
+                }
+
+                public override bool ShouldTrace(TraceEventCache cache, string source, 
+                                                  TraceEventType eventType, int id, 
+                                                  string formatOrMessage, object[] args, 
+                                                  object data1, object[] data)
+                {
+                    return true;
+                }
+
+                private string _options;
+            }
+          </code>
+          <para>
+            This filter doesn’t actually filter anything at the moment, and simply returns true from the ShouldTrace method. 
+            The .NET framework will call this method for each event that is raised, and information about the event itself 
+            is available from the parameters passed to the method.
+          </para>
+          <para>
+            To hook this filter into the application you should alter the configuration file as shown below.
+          </para>
+          <code language="xml">
+            &lt;?xml version="1.0" encoding="utf-8" ?&gt;
+            &lt;configuration&gt;
+              &lt;system.diagnostics&gt;
+                &lt;sources&gt;
+                  &lt;source name="ClientApp" switchValue="All"&gt;
+                    &lt;listeners&gt;
+                      &lt;clear/&gt;
+                      &lt;add name="EventLog"
+                           type="System.Diagnostics.EventLogTraceListener"
+                           traceOutputOptions="DateTime,ThreadId,Timestamp"
+                           initializeData="ClientAppEventLog"&gt;
+                        &lt;filter type="ClientApp.MethodFilter, ClientApp" initializeData="UI"/&gt;
+                      &lt;/add&gt;
+                    &lt;/listeners&gt;
+                  &lt;/source&gt;
+                &lt;/sources&gt;
+              &lt;/system.diagnostics&gt;
+            &lt;/configuration&gt;
+          </code>
+          <para>
+            When the framework initializes the trace listeners and filters it will check if the <legacyItalic>initializeData</legacyItalic> 
+            attribute has been defined (and is not empty). If so it will attempt to call a constructor on the filter class which 
+            takes a string parameter. If the initializeData attribute is missing or empty then the default constructor will be called. 
+            This can cause your code to fail if a default constructor is not defined, or conversely if you don’t have a constructor 
+            which takes a single string parameter. The error message shown isn’t all that helpful either, so it’s best to ensure 
+            that your trace filter has both constructors, and uses an appropriate default value if no initializeData attribute is defined.
+          </para>
+          <para>
+            As this filter is intended to filter method calls to a set of known methods, we need some way to define which methods 
+            to log and which to omit. We’ll use a custom configuration section handler to provide a list of methods that should 
+            be traced using the configuration file schema as shown below.
+          </para>
+          <code language="xml">
+            &lt;?xml version="1.0" encoding="utf-8" ?&gt;
+            &lt;configuration&gt;
+              &lt;configSections&gt;
+                &lt;section name="methodFilters" type="ClientApp.MethodFiltersSection, ClientApp"/&gt;
+              &lt;/configSections&gt;
+              &lt;system.diagnostics&gt;
+                ...
+              &lt;/system.diagnostics&gt;
+              &lt;methodFilters&gt;
+                &lt;methodFilter name="UI"&gt;
+                  &lt;method name="mainForm.buttonPlus_Click"/&gt;
+                  &lt;method name="mainForm.buttonMinus_Click"/&gt;
+                &lt;/methodFilter&gt;
+              &lt;/methodFilters&gt;
+            &lt;/configuration&gt;
+          </code>
+          <para>
+            Here we’ve defined a custom section <codeInline>&lt;methodFilters&gt;</codeInline> and within that a named set of 
+            methodFilter elements. Within the <codeInline>&lt;methodFilter&gt;</codeInline> element we’ve defined the 
+            <codeInline>&lt;method&gt;</codeInline> element which names a method that should be considered for trace output.
+          </para>
+          <para>
+            The code within the MethodFilter class has been updated too – the <legacyItalic>initializeData</legacyItalic> 
+            attribute in the configuration file names the <codeInline>&lt;methodFilter&gt;</codeInline> element that should be used 
+            when filtering events. So, with the configuration file as above (including the system.diagnostics section from 
+            the previous example) the code will only produce a trace event if the call stack includes the 
+            <codeInline>mainForm.buttonPlusClick</codeInline> or the <codeInline>mainForm.buttonMinusClick</codeInline> methods.
+          </para>
+          <para>The updated code for the MethodFilter is shown below.</para>
+          <code language="c#">
+            public class MethodFilter : TraceFilter
+            {
+                public MethodFilter(string name)
+                {
+                    _methods = new List&lt;string&gt;();
+
+                    MethodFiltersSection section = ConfigurationManager.GetSection("methodFilters") 
+                      as MethodFiltersSection;
+
+                    if (null != section)
+                    {
+                        MethodFilterElement mfe = section.MethodFilter[name];
+
+                        if (null != mfe)
+                        {
+                            foreach (MethodElement me in mfe.Methods)
+                                _methods.Add(me.MethodName);
+                        }
+                    }
+                }
+          </code>
+          <para>
+            In the constructor we create a list used to store method names, and then lookup the named 
+            <codeInline>&lt;methodFilter&gt;</codeInline> section. If found we then iterate through each 
+            <codeInline>&lt;method&gt;</codeInline> element and add it to the collection that maintains the list of methods that 
+            tracing is enabled for.
+          </para>
+          <code language="c#">
+                public override bool ShouldTrace(TraceEventCache cache, string source, 
+                                      TraceEventType eventType, int id, 
+                                      string formatOrMessage, object[] args, 
+                                      object data1, object[] data)
+                {
+                    bool shouldTrace = false;
+
+                    if (null != _methods)
+                    {
+                        for (int pos = 0; pos &lt; _methods.Count; pos++)
+                        {
+                            if (cache.Callstack.Contains(_methods[pos]))
+                            {
+                                shouldTrace = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    return shouldTrace;
+                }
+
+                private List&lt;string&gt; _methods;
+            }
+          </code>
+          <alert class="note">
+            If you were writing a real method name filter you would probably want to use a dictionary or hashtable to store method
+            names within, as these would be much faster at runtime than doing a linear search as shown here.
+          </alert>
+          <para>
+            In the ShouldTrace method we then iterate through the list of methods, and check if the callstack (available as a string on 
+            the TraceEventCache object) contains the method name. If so we return true and hence the event will be traced. Any call 
+            stack that does not contain a method name read from the configuration file is not traced.
+          </para>
+          <para>
+            There are many other ways that you could use the parameters passed to the ShouldTrace method in order to manufacture a 
+            trace filter appropriate for your situation. You might want to use a combination of the call stack and source parameter, 
+            or the id passed to the filter to enable or disable event logging. You could also use the arguments passed to the 
+            ShouldTrace function – for example you may have a bug that can only be replicated when an object (let’s say it’s a 
+            bitmap) of a particular size or dimension is passed to a function.
+          </para>
+          <alert class="caution">
+            Whilst this filter could be used, in practice it could be <legacyBold>very</legacyBold> slow. Ther reason for this is that
+            it requres the callstack, which is a very expensive operation for the .NET framework to perform. If you really wished to
+            perform some form of method specific logging then a better option could be using the LogicalOperationStack property of
+            the TraceEventCache object. Whilst you do have to maintain this data yourself it's relatively easy to do and would be
+            much more performant than the idea presented here.
+          </alert>
+        </content>
+			</section>
+		</sections>
+    </section>
+    
+    <relatedTopics>
+      <!-- One or more of the following:
+           - A local link
+           - An external link
+           - A code entity reference
+
+      <link xlink:href="Other Topic's ID"/>
+      <link xlink:href="Other Topic's ID">Link inner text</link>
+
+      <externalLink>
+          <linkText>Link text</linkText>
+          <linkAlternateText>Optional alternate link text</linkAlternateText>
+          <linkUri>URI</linkUri>
+      </externalLink>
+
+      <codeEntityReference>API member ID</codeEntityReference>
+
+      Examples:
+
+      <link xlink:href="00e97994-e9e6-46e0-b420-5be86b2f8270" />
+      <link xlink:href="00e97994-e9e6-46e0-b420-5be86b2f8278">Some other topic</link>
+
+      <externalLink>
+          <linkText>SHFB on CodePlex</linkText>
+          <linkAlternateText>Go to CodePlex</linkAlternateText>
+          <linkUri>http://shfb.codeplex.com</linkUri>
+      </externalLink>
+
+      <codeEntityReference>T:TestDoc.TestClass</codeEntityReference>
+      <codeEntityReference>P:TestDoc.TestClass.SomeProperty</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.#ctor</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.#ctor(System.String,System.Int32)</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.ToString</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.FirstMethod</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.SecondMethod(System.Int32,System.String)</codeEntityReference>
+      -->
+    </relatedTopics>
+  </developerConceptualDocument>
+</topic>

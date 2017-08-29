@@ -1,0 +1,138 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<topic id="3a444e33-cf1b-4b16-bdf9-95671a6d0e7a" revisionNumber="1">
+  <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
+
+    <!--
+    <summary>
+      <para>Optional summary abstract</para>
+    </summary>
+    -->
+    <introduction>
+      <!-- Uncomment this to generate an outline of the section and sub-section
+           titles.  Specify a numeric value as the inner text to limit it to
+           a specific number of sub-topics when creating the outline.  Specify
+           zero (0) to limit it to top-level sections only.  -->
+      <!-- <autoOutline /> -->
+		<para>The purpose of this documentation is to provide a thorough overview of the Ukadc.Diagnostics assembly.
+		If you just want to get on with using it see the section of quick start guides.</para>
+		<para>First off though a bit of history. The .NET framework has been around in one form or another since late 2000, when it was released as a preview
+		at the PDC. Version 1.0 was released to manufacture (otherwise known as RTM) on 5th January 2002. At that time the System.Diagnostics namespace
+		contained a very rudimentary set of classes - not really up to enterprise scale logging. Since then Microsoft have released multiple updates to the 
+		.NET framework and we're currently in the beta phase of .NET 4.0. Along the way a load of interesting features have been added to the framework, and
+		most notably for this project, the System.Diagnostics namespace was beefed up a lot in .NET 2.0 to the point where it's now far from rudimentary and
+		instead can be used as your only logging/tracing mechanism.</para>
+		<para>Since .NET 3.0 Microsoft have also been using the facilities available within the System.Diagnostics namespace to add in logging/tracing 
+		functionality to areas of the .NET Framework, so that you can get a diagnostic trace from subsystems such as WCF, WPF and WF. What's good for the goose
+		is good for the gander, so you might as well know how this stuff works so that you can utilise it in your own applications too.
+		</para>
+    </introduction>
+    <!-- Add one or more top-level section elements.  These are collapsible.
+         If using <autoOutline />, add an address attribute to identify it
+         and specify a title so that it can be jumped to with a hyperlink. -->
+    <section address="Section1">
+      <title>Why Ukadc.Diagnostics?</title>
+      <content>
+        <!-- Uncomment this to create a sub-section outline
+        <autoOutline /> -->
+        <para>This library has been written by a couple of ADC's (
+        
+        <externalLink>
+			<linkText>Application Development Consultants</linkText>
+			<linkUri>http://www.microsoft.com/uk/adc</linkUri>
+			<linkTarget>_self</linkTarget>
+        </externalLink>
+        ) working for Microsoft in the UK. We're
+        
+        <externalLink>
+			<linkText>Morgan Skinner</linkText>
+			<linkUri>http://www.morganskinner.com</linkUri>
+			<linkAlternateText>Visit Morgan's site</linkAlternateText>
+			<linkTarget>_self</linkTarget>
+        </externalLink>
+
+		and
+		
+        <externalLink>
+			<linkText>Josh Twist</linkText>
+			<linkUri>http://www.thejoyofcode.com</linkUri>
+			<linkAlternateText>Visit Josh's site</linkAlternateText>
+			<linkTarget>_self</linkTarget>
+        </externalLink>
+        
+        and we've been working on and off on this project for a year or so. The main rationale behind this library is one of extension - we think the 
+        facilities available within System.Diagnostics are fantastic but wanted to add on some extra behaviour that we feel would be beneficial. We have two main
+        goals for the project - firstly to expound the virtues of System.Diagnostics, and secondly to extend the set of classes to add on some behaviours we
+        feel are useful.
+        </para>
+        <para>That's enough waffle from us - please feel free to delve into the documentation wherever you please, but if you're entirely new to the
+        System.Diagnostics namespace may we recommend the <link xlink:href="42a7fe16-f187-4230-ad65-821a1b47ce39"/> section, and if you're a diagnostics 
+        ninja then you should try the section on <link xlink:href="427208a7-2b4c-462a-a740-232204b662f5"/>.</para>
+        <para>We welcome feedback on this project - please go to the
+        
+        	<externalLink>
+				<linkText>Ukadc.Diagnostics</linkText>
+				<linkUri>http://ukadcdiagnostics.codeplex.com</linkUri>
+				<linkAlternateText>Click to go online</linkAlternateText>
+				<linkTarget>_self</linkTarget>
+        	</externalLink>
+        	
+       	site on Codeplex and feel free to start off a discussion topic.
+        
+        </para>
+      </content>
+      <!-- If a section contains a sections element, its content creates
+           sub-sections.  These are not collapsible.
+      <sections>
+          <section address="SubSection1">
+              <title>Sub-section 1</title>
+              <content>
+                  <para>Sub-section content.</para>
+              </content>
+          </section>
+          <section address="SubSection2">
+              <title>Sub-section 2</title>
+              <content>
+                  <para>Sub-section content.</para>
+              </content>
+          </section>
+      </sections> -->
+    </section>
+    <relatedTopics>
+      <!-- One or more of the following:
+           - A local link
+           - An external link
+           - A code entity reference
+
+      <link xlink:href="Other Topic's ID"/>
+      <link xlink:href="Other Topic's ID">Link inner text</link>
+
+      <externalLink>
+          <linkText>Link text</linkText>
+          <linkAlternateText>Optional alternate link text</linkAlternateText>
+          <linkUri>URI</linkUri>
+      </externalLink>
+
+      <codeEntityReference>API member ID</codeEntityReference>
+
+      Examples:
+
+      <link xlink:href="00e97994-e9e6-46e0-b420-5be86b2f8270" />
+      <link xlink:href="00e97994-e9e6-46e0-b420-5be86b2f8278">Some other topic</link>
+
+      <externalLink>
+          <linkText>SHFB on CodePlex</linkText>
+          <linkAlternateText>Go to CodePlex</linkAlternateText>
+          <linkUri>http://shfb.codeplex.com</linkUri>
+      </externalLink>
+
+      <codeEntityReference>T:TestDoc.TestClass</codeEntityReference>
+      <codeEntityReference>P:TestDoc.TestClass.SomeProperty</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.#ctor</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.#ctor(System.String,System.Int32)</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.ToString</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.FirstMethod</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.SecondMethod(System.Int32,System.String)</codeEntityReference>
+      -->
+    </relatedTopics>
+  </developerConceptualDocument>
+</topic>

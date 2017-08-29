@@ -1,0 +1,221 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<topic id="1093b27a-8648-47f7-9e91-0bbd1b2a2e38" revisionNumber="1">
+  <developerHowToDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!--
+    <summary>
+      <para>Optional summary abstract</para>
+    </summary>
+    -->
+    <introduction>
+     <para>The facilities of System.Diagnostics are not well understood by everyone - indeed if you have been developing since .NET 1.0 
+			you would be forgiven for never having gone back to this namespace as the support for logging in .NET 1.0 was, to be fair, limited.</para>
+			<para>As a quick overview you have the following main classes.</para>
+			<mediaLink>
+				<image xlink:href="beefbeef-baad-beef-0000-000000000001"/>
+			</mediaLink>
+      		<para>These classes are briefly as follows...</para>
+      		<list class="bullet">
+      			<listItem>At least one 
+      			<externalLink>
+					<linkText>TraceSource</linkText>
+					<linkUri>http://msdn2.microsoft.com/System.Diagnostics.TraceSource</linkUri>
+					<linkTarget>_self</linkTarget>
+				</externalLink>
+      			- instantiated by you in your application</listItem>
+      			<listItem>At least one 
+      			<externalLink>
+					<linkText>TraceListener</linkText>
+					<linkUri>http://msdn2.microsoft.com/System.Diagnostics.TraceListener</linkUri>
+					<linkTarget>_self</linkTarget>
+				</externalLink>
+      			- this is where trace data is sent to</listItem>
+      			<listItem>Optional 
+      			<externalLink>
+					<linkText>TraceFilter(s)</linkText>
+					<linkUri>http://msdn2.microsoft.com/System.Diagnostics.TraceFilter</linkUri>
+					<linkTarget>_self</linkTarget>
+				</externalLink>
+      			- can be used to further discriminate whether an event is traced</listItem>
+      		</list>
+      		<para>In this worked example we'll create a trace source, and then define a single trace listener in the configuration file.
+      		You'll typically use the application config file to change the level of trace output produced, and also which listeners
+      		are defined, as this information really shouldn't be hard-coded. One of the nice things here is that you can alter the
+      		amount of trace data being emitted (and where that trace data goes) simply by altering this .config file.</para>
+    </introduction>
+    <!-- Optional procedures followed by optional code example but must have
+         at least one procedure or code example -->
+    <procedure>
+      <title>Adding rudimentary logging</title>
+      <steps class="ordered">
+        <step>
+          <content>
+            <para><legacyBold>Create the Trace Source</legacyBold></para>
+            <para>If you wish to code along with this example, create a class library project and a console application that uses
+            that class library. You'll add logging to the class library code.</para>
+            <para>&#160;</para>
+            <para>
+		    	In this step of the process we need to construct a TraceSource instance for our assembly. A TraceSource is defined
+		    	with a name and this typically corresponds to the name of the assembly. As an example there is the System.ServiceModel trace
+		    	source which is utilised in the assembly of the same name. Keeping the name the same means it's easier for someone
+		    	using your assembly to change configuration options for it, as they can easily remember the name of the trace source as it's
+		    	staring them in the face. So as a rule of thumb, always call your trace source the same as the assembly.
+	    	</para>
+            <para>&#160;</para>
+            <para>
+            	The most common way to define a TraceSource is to create a class something like that shown below. This defines a static
+            	member to hold the single instance of the TraceSource, and exposes this to callers using a simple static property.
+            </para>
+            <code language="C#">
+			/// &lt;summary&gt;
+			/// This class exposes a trace source for the assembly 'MyAssembly'
+			/// &lt;/summary&gt;
+			internal class MyAssemblySource
+			{
+			    /// &lt;summary&gt;
+			    /// Construct the trace source
+			    /// &lt;/summary&gt;
+			    static MyAssemblySource()
+			    {
+			        // Set the default level of this trace source to Critical.
+			        // In the absense of any other configuration this will ensure that
+			        // only critical messages are output
+			        _myAssemblySource = new TraceSource("MyAssembly", SourceLevels.Critical);
+			    }
+			
+			    /// &lt;summary&gt;
+			    /// Get the trace source for the client app
+			    /// &lt;/summary&gt;
+			    internal static TraceSource TraceSource
+			    {
+			        get { return _myAssemblySource; }
+			    }
+			
+			    /// &lt;summary&gt;
+			    /// Store the single trace source instance
+			    /// &lt;/summary&gt;
+			    private static TraceSource _myAssemblySource;
+			}
+            </code>
+            <para>
+            So here in this example we have constructed a trace source and specified that the trace source name is "MyAssembly".
+            </para>
+            
+          </content>
+        </step>
+        <step>
+          <content>
+            <para><legacyBold>Add trace statements to the code</legacyBold></para>
+            <para>
+            	In order to view some form of trace output you'll need to emit some trace events. With the above class it's 
+            	fairly easy to add logging code. In the code sample below the calls to <codeInline>MyAssemblySource.TraceSource</codeInline>
+            	are those that are emitting trace events.
+            </para>
+            <code language="C#">
+            public class Calculator
+            {
+            	public static int Add ( int a, int b )
+            	{
+            		/// Emit trace information
+            		MyAssemblySource.TraceSource.TraceInformation ( @"Adding {0} + {1}", a, b );
+            		
+            		return a + b;
+            	}
+            	
+            	public static int Mul ( int a, int b )
+            	{
+            		/// Emit trace information
+            		MyAssemblySource.TraceSource.TraceInformation ( @"Multiplying {0} * {1}", a, b );
+            		
+            		return a * b;
+            	}
+            }
+            </code>
+            <para>
+            Here there is an informational event output whenever an operation is called on the <codeInline>Calculator</codeInline> class. There
+            are several types of event and different severities that can be associated with those events.
+            </para>
+          </content>
+        </step>
+        <step>
+        	<content>
+	        	<para><legacyBold>Setup a listener in the .config file</legacyBold></para>
+	            <para>
+	            	In this last step you need to define a trace listener, so that trace output from the application has somewhere to
+	            	go. There are a bunch of trace listeners in the box but and for this example we'll use the 
+	            	
+	            	<externalLink>
+						<linkText>ConsoleTraceListener</linkText>
+						<linkUri>http://msdn2.microsoft.com/System.Diagnostics.ConsoleTraceListener</linkUri>
+						<linkTarget>_self</linkTarget>
+					</externalLink>.
+					
+					Based on the name of this trace listener you can infer what it does - output trace messages to the console.
+	            </para>
+	            <para>&#160;</para>
+	            <para>
+	            	To define a trace listener you need to alter the configuration file for the application (and create one if one does
+	            	not exist) and then add in the <codeInline>system.diagnostics</codeInline> section as shown below.
+	            </para>
+	            <code language="xml">
+					&lt;?xml version="1.0" encoding="utf-8" ?&gt;
+					&lt;configuration&gt;
+					  &lt;system.diagnostics&gt;
+					    &lt;sources&gt;
+					      &lt;source name="MyAssembly" switchValue="verbose"&gt;
+					        &lt;listeners&gt;
+					          &lt;add name="Console"
+					               type="System.Diagnostics.ConsoleTraceListener"/&gt;
+					        &lt;/listeners&gt;
+					      &lt;/source&gt;
+					    &lt;/sources&gt;
+					  &lt;/system.diagnostics&gt;
+					&lt;/configuration&gt;
+	            </code>
+	            <para>With the above configuration in place, when you execute the application you should see trace output within the
+	            console window.</para>
+        	</content>
+        </step>
+      </steps>
+      <!-- <conclusion>Optional conclusion</conclusion> -->
+    </procedure>
+    <!-- <codeExample>Optional code example</codeExample> -->
+    <!-- <buildInstructions>Optional instructions for building a
+         code example.</buildInstructions> -->
+    <!-- <robustProgramming>Optional discussion of error handling and other
+         issues related to writing solid code.</robustProgramming> -->
+    <!-- <security>Optional discussion of security issues.</security> -->
+    <relatedTopics>
+      <!-- One or more of the following:
+           - A local link
+           - An external link
+           - A code entity reference
+
+      <link xlink:href="Other Topic's ID">Link text</link>
+      <externalLink>
+          <linkText>Link text</linkText>
+          <linkAlternateText>Optional alternate link text</linkAlternateText>
+          <linkUri>URI</linkUri>
+      </externalLink>
+      <codeEntityReference>API member ID</codeEntityReference>
+
+      Examples:
+
+      <link xlink:href="00e97994-e9e6-46e0-b420-5be86b2f8278">Some other topic</link>
+
+      <externalLink>
+          <linkText>SHFB on CodePlex</linkText>
+          <linkAlternateText>Go to CodePlex</linkAlternateText>
+          <linkUri>http://shfb.codeplex.com</linkUri>
+      </externalLink>
+
+      <codeEntityReference>T:TestDoc.TestClass</codeEntityReference>
+      <codeEntityReference>P:TestDoc.TestClass.SomeProperty</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.#ctor</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.#ctor(System.String,System.Int32)</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.ToString</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.FirstMethod</codeEntityReference>
+      <codeEntityReference>M:TestDoc.TestClass.SecondMethod(System.Int32,System.String)</codeEntityReference>
+      -->
+    </relatedTopics>
+  </developerHowToDocument>
+</topic>

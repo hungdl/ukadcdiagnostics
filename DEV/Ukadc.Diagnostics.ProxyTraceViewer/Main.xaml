@@ -1,0 +1,48 @@
+﻿<Window x:Class="Ukadc.Diagnostics.ProxyTraceViewer.Main"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Proxy Trace Viewer">
+    <Grid Margin="{StaticResource mainMargin}" >
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="2*" />
+        </Grid.ColumnDefinitions>
+
+        <ListBox
+                x:Name="listTraceEvents"
+                Margin="{StaticResource mainMargin}" 
+                 ItemsSource="{Binding DisplayTraceEvents}"
+                SelectedItem="{Binding SelectedEvent}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Border x:Name="listRoot">
+                        <ContentPresenter Content="{Binding TraceEvent}" 
+                                          ContentTemplate="{Binding ElementName=listRoot, Path=DataContext.ListTemplate}" />
+                    </Border>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+
+        </ListBox>
+
+        <TabControl x:Name="tabTraceEvent"
+                    Margin="{StaticResource mainMargin}"
+                    Grid.Column="1" 
+                    ItemsSource="{Binding SelectedEvent.DisplayTemplates}"
+                    SelectedIndex="{Binding SelectedTab}">
+            <TabControl.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Name}" />
+                </DataTemplate>
+            </TabControl.ItemTemplate>
+            <TabControl.ContentTemplate>
+                <DataTemplate>
+                    <Border x:Name="tabRoot">
+                        <ContentPresenter Content="{Binding ElementName=tabTraceEvent, Path=DataContext.SelectedEvent.TraceEvent}" 
+                                          ContentTemplate="{Binding ElementName=tabRoot, Path=DataContext.DataTemplate}" />
+                    </Border>
+                </DataTemplate>
+            </TabControl.ContentTemplate>
+        </TabControl>
+
+    </Grid>
+</Window>

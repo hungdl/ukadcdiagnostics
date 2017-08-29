@@ -1,0 +1,86 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{CE27C8B3-07CE-403D-917E-E8F9EA1BA6EC}"
+	ProjectSection(SolutionItems) = preProject
+		LocalTestRun.testrunconfig = LocalTestRun.testrunconfig
+		Rhino.Mocks.dll = Rhino.Mocks.dll
+		TheJoyOfCode.QualityTools.dll = TheJoyOfCode.QualityTools.dll
+		UkadcDiagnostics2.vsmdi = UkadcDiagnostics2.vsmdi
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ProxyTraceViewer", "ProxyTraceViewer", "{D1B02D30-779C-4F75-9362-4B91AE2D7A2B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{642CAC4D-39C8-40A0-B635-6693C2DE0972}"
+	ProjectSection(SolutionItems) = preProject
+		Documentation\1093b27a-8648-47f7-9e91-0bbd1b2a2e38.aml = Documentation\1093b27a-8648-47f7-9e91-0bbd1b2a2e38.aml
+		Documentation\3a444e33-cf1b-4b16-bdf9-95671a6d0e7a.aml = Documentation\3a444e33-cf1b-4b16-bdf9-95671a6d0e7a.aml
+		Documentation\427208a7-2b4c-462a-a740-232204b662f5.aml = Documentation\427208a7-2b4c-462a-a740-232204b662f5.aml
+		Documentation\42a7fe16-f187-4230-ad65-821a1b47ce39.aml = Documentation\42a7fe16-f187-4230-ad65-821a1b47ce39.aml
+		Documentation\Content Layout.content = Documentation\Content Layout.content
+		Documentation\d20108cc-d22f-47fd-b2be-75180a97a1d8.aml = Documentation\d20108cc-d22f-47fd-b2be-75180a97a1d8.aml
+		Documentation\Ukadc.Diagnostics.shfbproj = Documentation\Ukadc.Diagnostics.shfbproj
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ukadc.Diagnostics", "Ukadc.Diagnostics\Ukadc.Diagnostics.csproj", "{091DA3B6-0460-4EAE-8798-3576129A98CB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ukadc.Diagnostics.Tests", "Ukadc.Diagnostics.Tests\Ukadc.Diagnostics.Tests.csproj", "{C5EC7C4A-0427-4C41-A9CC-DE03A91EA232}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ukadc.Diagnostics.ProxyTraceViewer", "Ukadc.Diagnostics.ProxyTraceViewer\Ukadc.Diagnostics.ProxyTraceViewer.csproj", "{F13CDE92-F970-43F4-AF60-19ADE742874B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ukadc.Diagnostics.ProxyTraceViewer.Contracts", "Ukadc.Diagnostics.ProxyTraceViewer.Contracts\Ukadc.Diagnostics.ProxyTraceViewer.Contracts.csproj", "{ECF26671-D4CC-417E-AF17-626D44DC2362}"
+EndProject
+Global
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 5
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs05
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = Ukadc.Diagnostics\\Ukadc.Diagnostics.csproj
+		SccProjectName1 = Ukadc.Diagnostics
+		SccLocalPath1 = Ukadc.Diagnostics
+		SccProjectUniqueName2 = Ukadc.Diagnostics.Tests\\Ukadc.Diagnostics.Tests.csproj
+		SccProjectName2 = Ukadc.Diagnostics.Tests
+		SccLocalPath2 = Ukadc.Diagnostics.Tests
+		SccProjectUniqueName3 = Ukadc.Diagnostics.ProxyTraceViewer\\Ukadc.Diagnostics.ProxyTraceViewer.csproj
+		SccProjectTopLevelParentUniqueName3 = UkadcDiagnostics.sln
+		SccProjectName3 = Ukadc.Diagnostics.ProxyTraceViewer
+		SccLocalPath3 = Ukadc.Diagnostics.ProxyTraceViewer
+		SccProjectUniqueName4 = Ukadc.Diagnostics.ProxyTraceViewer.Contracts\\Ukadc.Diagnostics.ProxyTraceViewer.Contracts.csproj
+		SccProjectTopLevelParentUniqueName4 = UkadcDiagnostics.sln
+		SccProjectName4 = Ukadc.Diagnostics.ProxyTraceViewer.Contracts
+		SccLocalPath4 = Ukadc.Diagnostics.ProxyTraceViewer.Contracts
+	EndGlobalSection
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = UkadcDiagnostics2.vsmdi
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{091DA3B6-0460-4EAE-8798-3576129A98CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{091DA3B6-0460-4EAE-8798-3576129A98CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{091DA3B6-0460-4EAE-8798-3576129A98CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{091DA3B6-0460-4EAE-8798-3576129A98CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C5EC7C4A-0427-4C41-A9CC-DE03A91EA232}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5EC7C4A-0427-4C41-A9CC-DE03A91EA232}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C5EC7C4A-0427-4C41-A9CC-DE03A91EA232}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C5EC7C4A-0427-4C41-A9CC-DE03A91EA232}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F13CDE92-F970-43F4-AF60-19ADE742874B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F13CDE92-F970-43F4-AF60-19ADE742874B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F13CDE92-F970-43F4-AF60-19ADE742874B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F13CDE92-F970-43F4-AF60-19ADE742874B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECF26671-D4CC-417E-AF17-626D44DC2362}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECF26671-D4CC-417E-AF17-626D44DC2362}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECF26671-D4CC-417E-AF17-626D44DC2362}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECF26671-D4CC-417E-AF17-626D44DC2362}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F13CDE92-F970-43F4-AF60-19ADE742874B} = {D1B02D30-779C-4F75-9362-4B91AE2D7A2B}
+		{ECF26671-D4CC-417E-AF17-626D44DC2362} = {D1B02D30-779C-4F75-9362-4B91AE2D7A2B}
+	EndGlobalSection
+EndGlobal

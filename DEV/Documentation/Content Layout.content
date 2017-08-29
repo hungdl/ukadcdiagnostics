@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Topics defaultTopic="3a444e33-cf1b-4b16-bdf9-95671a6d0e7a">
+  <Topic id="3a444e33-cf1b-4b16-bdf9-95671a6d0e7a" visible="True" title="Welcome to Ukadc.Diagnostics" tocTitle="Welcome" />
+  <Topic id="5fbdbeba-111a-42d3-b667-4fd734e058db" visible="True" noFile="True" title="Quick Starts">
+    <Topic id="1093b27a-8648-47f7-9e91-0bbd1b2a2e38" visible="True" title="Rudimentary Logging" />
+  </Topic>
+  <Topic id="0fbe0a71-cde7-46c6-85d0-be5eae4b7e39" visible="True" noFile="True" title="Background Information">
+    <Topic id="42a7fe16-f187-4230-ad65-821a1b47ce39" visible="True" title="An overview of System.Diagnostics" />
+    <Topic id="427208a7-2b4c-462a-a740-232204b662f5" visible="True" title="What's available in Ukadc.Diagnostics" />
+  </Topic>
+</Topics>
